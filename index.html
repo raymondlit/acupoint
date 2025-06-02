@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中医针灸经络穴位学习工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .score-board {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .score-board h3 {
+            margin-bottom: 10px;
+        }
+
+        .score-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1em;
+        }
+
+        .current-question {
+            background: #f8f9ff;
+            border: 2px solid #ff6b35;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .current-question h3 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .question-text {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 2px dashed #ff6b35;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            transition: width 0.3s ease;
+        }
+
+        .body-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            padding: 20px;
+            position: relative;
+        }
+
+        .human-body {
+            position: relative;
+            width: 600px;
+            height: 800px;
+            cursor: crosshair;
+        }
+
+        .human-figure {
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800"><defs><linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23fde4d0;stop-opacity:1" /><stop offset="30%" style="stop-color:%23f5d5ae;stop-opacity:1" /><stop offset="70%" style="stop-color:%23edc9a3;stop-opacity:1" /><stop offset="100%" style="stop-color:%23d4a574;stop-opacity:1" /></linearGradient><linearGradient id="shadowGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23c8a882;stop-opacity:0.6" /><stop offset="100%" style="stop-color:%23b8956f;stop-opacity:0.8" /></linearGradient><linearGradient id="muscleShadow" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23b8956f;stop-opacity:0.4" /><stop offset="100%" style="stop-color:%23a08660;stop-opacity:0.6" /></linearGradient><filter id="drop-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="3" dy="3" stdDeviation="3" flood-opacity="0.4" flood-color="%23a08660"/></filter><filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="2" dy="2" stdDeviation="2" flood-opacity="0.3" flood-color="%23c8a882"/></filter></defs><!-- 头部 --><ellipse cx="300" cy="90" rx="45" ry="50" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 面部特征阴影 --><ellipse cx="300" cy="90" rx="35" ry="40" fill="none" stroke="url(%23shadowGrad)" stroke-width="1" opacity="0.3"/><!-- 颈部 --><rect x="290" y="130" width="20" height="35" rx="10" fill="url(%23skinGrad)" filter="url(%23soft-shadow)"/><!-- 喉结 --><ellipse cx="300" cy="140" rx="8" ry="4" fill="url(%23shadowGrad)" opacity="0.4"/><!-- 胸部和肋骨 --><ellipse cx="300" cy="220" rx="75" ry="90" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 胸肌轮廓 --><ellipse cx="280" cy="200" rx="25" ry="35" fill="none" stroke="url(%23muscleShadow)" stroke-width="1.5" opacity="0.5"/><ellipse cx="320" cy="200" rx="25" ry="35" fill="none" stroke="url(%23muscleShadow)" stroke-width="1.5" opacity="0.5"/><!-- 腹部肌肉 --><ellipse cx="300" cy="320" rx="60" ry="80" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 腹肌线条 --><line x1="300" y1="260" x2="300" y2="380" stroke="url(%23shadowGrad)" stroke-width="2" opacity="0.6"/><line x1="280" y1="280" x2="280" y2="360" stroke="url(%23shadowGrad)" stroke-width="1" opacity="0.4"/><line x1="320" y1="280" x2="320" y2="360" stroke="url(%23shadowGrad)" stroke-width="1" opacity="0.4"/><!-- 六块腹肌轮廓 --><ellipse cx="290" cy="280" rx="12" ry="8" fill="url(%23muscleShadow)" opacity="0.3"/><ellipse cx="310" cy="280" rx="12" ry="8" fill="url(%23muscleShadow)" opacity="0.3"/><ellipse cx="290" cy="300" rx="12" ry="8" fill="url(%23muscleShadow)" opacity="0.3"/><ellipse cx="310" cy="300" rx="12" ry="8" fill="url(%23muscleShadow)" opacity="0.3"/><ellipse cx="290" cy="320" rx="12" ry="8" fill="url(%23muscleShadow)" opacity="0.3"/><ellipse cx="310" cy="320" rx="12" ry="8" fill="url(%23muscleShadow)" opacity="0.3"/><!-- 腰部收缩 --><ellipse cx="300" cy="380" rx="50" ry="25" fill="url(%23skinGrad)"/><!-- 臀部和骨盆 --><ellipse cx="300" cy="420" rx="65" ry="45" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 左肩 --><circle cx="220" cy="180" r="25" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 左上臂 --><ellipse cx="190" cy="230" rx="22" ry="55" fill="url(%23skinGrad)" transform="rotate(-20 190 230)" filter="url(%23drop-shadow)"/><!-- 左上臂肌肉轮廓 --><ellipse cx="190" cy="230" rx="18" ry="45" fill="none" stroke="url(%23muscleShadow)" stroke-width="1" opacity="0.4" transform="rotate(-20 190 230)"/><!-- 左肘关节 --><circle cx="170" cy="280" r="15" fill="url(%23skinGrad)" filter="url(%23soft-shadow)"/><!-- 左前臂 --><ellipse cx="155" cy="340" rx="18" ry="50" fill="url(%23skinGrad)" transform="rotate(-30 155 340)" filter="url(%23drop-shadow)"/><!-- 左前臂肌肉 --><ellipse cx="155" cy="340" rx="14" ry="40" fill="none" stroke="url(%23muscleShadow)" stroke-width="1" opacity="0.4" transform="rotate(-30 155 340)"/><!-- 左手腕 --><ellipse cx="140" cy="390" rx="10" ry="8" fill="url(%23skinGrad)" filter="url(%23soft-shadow)"/><!-- 左手 --><ellipse cx="130" cy="410" rx="15" ry="25" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 右肩 --><circle cx="380" cy="180" r="25" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 右上臂 --><ellipse cx="410" cy="230" rx="22" ry="55" fill="url(%23skinGrad)" transform="rotate(20 410 230)" filter="url(%23drop-shadow)"/><!-- 右上臂肌肉轮廓 --><ellipse cx="410" cy="230" rx="18" ry="45" fill="none" stroke="url(%23muscleShadow)" stroke-width="1" opacity="0.4" transform="rotate(20 410 230)"/><!-- 右肘关节 --><circle cx="430" cy="280" r="15" fill="url(%23skinGrad)" filter="url(%23soft-shadow)"/><!-- 右前臂 --><ellipse cx="445" cy="340" rx="18" ry="50" fill="url(%23skinGrad)" transform="rotate(30 445 340)" filter="url(%23drop-shadow)"/><!-- 右前臂肌肉 --><ellipse cx="445" cy="340" rx="14" ry="40" fill="none" stroke="url(%23muscleShadow)" stroke-width="1" opacity="0.4" transform="rotate(30 445 340)"/><!-- 右手腕 --><ellipse cx="460" cy="390" rx="10" ry="8" fill="url(%23skinGrad)" filter="url(%23soft-shadow)"/><!-- 右手 --><ellipse cx="470" cy="410" rx="15" ry="25" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 左大腿 --><ellipse cx="270" cy="520" rx="30" ry="75" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 左大腿肌肉 --><ellipse cx="270" cy="520" rx="25" ry="65" fill="none" stroke="url(%23muscleShadow)" stroke-width="1.5" opacity="0.5"/><!-- 左膝盖 --><circle cx="265" cy="590" r="18" fill="url(%23skinGrad)" filter="url(%23soft-shadow)"/><!-- 左小腿 --><ellipse cx="260" cy="670" rx="22" ry="70" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 左小腿肌肉轮廓 --><ellipse cx="260" cy="670" rx="18" ry="60" fill="none" stroke="url(%23muscleShadow)" stroke-width="1" opacity="0.4"/><!-- 左踝关节 --><circle cx="255" cy="735" r="12" fill="url(%23skinGrad)" filter="url(%23soft-shadow)"/><!-- 左脚 --><ellipse cx="250" cy="760" rx="18" ry="30" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 右大腿 --><ellipse cx="330" cy="520" rx="30" ry="75" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 右大腿肌肉 --><ellipse cx="330" cy="520" rx="25" ry="65" fill="none" stroke="url(%23muscleShadow)" stroke-width="1.5" opacity="0.5"/><!-- 右膝盖 --><circle cx="335" cy="590" r="18" fill="url(%23skinGrad)" filter="url(%23soft-shadow)"/><!-- 右小腿 --><ellipse cx="340" cy="670" rx="22" ry="70" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 右小腿肌肉轮廓 --><ellipse cx="340" cy="670" rx="18" ry="60" fill="none" stroke="url(%23muscleShadow)" stroke-width="1" opacity="0.4"/><!-- 右踝关节 --><circle cx="345" cy="735" r="12" fill="url(%23skinGrad)" filter="url(%23soft-shadow)"/><!-- 右脚 --><ellipse cx="350" cy="760" rx="18" ry="30" fill="url(%23skinGrad)" filter="url(%23drop-shadow)"/><!-- 关节标记 --><circle cx="220" cy="180" r="12" fill="url(%23shadowGrad)" opacity="0.4"/><!-- 左肩关节 --><circle cx="380" cy="180" r="12" fill="url(%23shadowGrad)" opacity="0.4"/><!-- 右肩关节 --><circle cx="270" cy="460" r="12" fill="url(%23shadowGrad)" opacity="0.4"/><!-- 左髋关节 --><circle cx="330" cy="460" r="12" fill="url(%23shadowGrad)" opacity="0.4"/><!-- 右髋关节 --></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .acupoint {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ff4757 0%, #c44569 100%);
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(255, 71, 87, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+            z-index: 10;
+        }
+
+        .acupoint:hover {
+            transform: scale(1.5);
+            background: radial-gradient(circle, #ffa502 0%, #ff6348 100%);
+            box-shadow: 0 6px 20px rgba(255, 165, 2, 0.8), inset 0 3px 6px rgba(255, 255, 255, 0.5);
+            border-color: #fff;
+        }
+
+        .acupoint.highlight {
+            animation: pulse 1.5s infinite;
+            background: radial-gradient(circle, #ffa502 0%, #ff7675 100%);
+            border-color: #fdcb6e;
+            box-shadow: 0 6px 25px rgba(255, 165, 2, 0.9);
+        }
+
+        @keyframes pulse {
+            0% { 
+                transform: scale(1); 
+                box-shadow: 0 6px 25px rgba(255, 165, 2, 0.9);
+            }
+            50% { 
+                transform: scale(1.8); 
+                box-shadow: 0 10px 40px rgba(255, 165, 2, 1);
+            }
+            100% { 
+                transform: scale(1); 
+                box-shadow: 0 6px 25px rgba(255, 165, 2, 0.9);
+            }
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .meridian-info {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f4fd 100%);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #ff6b35;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .meridian-info h4 {
+            color: #ff6b35;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .achievement {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            max-width: 500px;
+        }
+
+        .achievement.show {
+            display: block;
+            animation: achievementPop 0.6s ease;
+        }
+
+        @keyframes achievementPop {
+            0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .acupoint-label {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 20;
+            white-space: nowrap;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        }
+
+        .acupoint:hover + .acupoint-label,
+        .acupoint.highlight + .acupoint-label {
+            opacity: 1;
+        }
+
+        .meridian-legend {
+            background: #f0f2f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .meridian-legend h5 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .meridian-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .meridian-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .human-body {
+                width: 400px;
+                height: 550px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏥 中医针灸经络穴位学习工具</h1>
+        <p>弘扬中医经络传统文化，科学学习人体穴位知识</p>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="score-board">
+                <h3>📊 学习进度</h3>
+                <div class="score-stats">
+                    <span>正确: <span id="correct">0</span></span>
+                    <span>错误: <span id="incorrect">0</span></span>
+                    <span>正确率: <span id="accuracy">0%</span></span>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+
+            <div class="current-question">
+                <h3>🎯 请找到以下穴位：</h3>
+                <div class="question-text" id="currentAcupoint">点击开始学习</div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+
+            <div class="meridian-info">
+                <h4>📚 穴位详情</h4>
+                <p id="meridianInfo">选择穴位后显示相关经络信息</p>
+            </div>
+
+            <div class="meridian-legend">
+                <h5>🌟 主要经络</h5>
+                <div class="meridian-item">
+                    <div class="meridian-color" style="background: #ff6b35;"></div>
+                    <span>任脉 - 前正中线</span>
+                </div>
+                <div class="meridian-item">
+                    <div class="meridian-color" style="background: #4834d4;"></div>
+                    <span>督脉 - 后正中线</span>
+                </div>
+                <div class="meridian-item">
+                    <div class="meridian-color" style="background: #27ae60;"></div>
+                    <span>胃经 - 消化系统</span>
+                </div>
+                <div class="meridian-item">
+                    <div class="meridian-color" style="background: #e74c3c;"></div>
+                    <span>肝经 - 疏泄调节</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="startLearning()">🚀 开始学习</button>
+                <button class="btn" onclick="nextQuestion()">➡️ 下一题</button>
+                <button class="btn" onclick="resetGame()">🔄 重新开始</button>
+            </div>
+        </div>
+
+        <div class="body-container">
+            <div class="human-body" id="humanBody">
+                <div class="human-figure"></div>
+                <!-- 穴位点将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <div class="achievement" id="achievement">
+        <h2>🎉 恭喜完成学习！</h2>
+        <p id="achievementText">您已完成所有穴位学习！</p>
+        <button class="btn" onclick="closeAchievement()">继续练习</button>
+    </div>
+
+    <script>
+        // 根据上传图片精确标注的穴位数据
+        const acupoints = [
+            // 头面部穴位
+            { name: "百会", x: 300, y: 60, meridian: "督脉", description: "位于头顶正中，百脉交汇处，具有升阳益气、醒脑开窍的功效" },
+            { name: "印堂", x: 300, y: 80, meridian: "督脉", description: "位于两眉头连线中点，具有宁心安神、清头明目的作用" },
+            { name: "太阳", x: 325, y: 85, meridian: "经外奇穴", description: "位于眉梢与目外眦连线中点外一横指处，主治头痛目疾" },
+            { name: "风池", x: 315, y: 95, meridian: "胆经", description: "位于后发际线上，胸锁乳突肌外缘凹陷中，祛风解表" },
+            { name: "迎香", x: 290, y: 95, meridian: "大肠经", description: "位于鼻翼外缘中点旁开约0.5寸，通鼻窍" },
+            { name: "人中", x: 300, y: 100, meridian: "督脉", description: "位于鼻唇沟上1/3与下2/3交界处，醒神开窍" },
+            { name: "承浆", x: 300, y: 115, meridian: "任脉", description: "位于下唇下方凹陷中，清热泻火" },
+            
+            // 颈胸部穴位
+            { name: "天突", x: 300, y: 145, meridian: "任脉", description: "位于胸骨上窝正中，理气化痰" },
+            { name: "大椎", x: 300, y: 155, meridian: "督脉", description: "位于第7颈椎棘突下凹陷中，解表清热" },
+            { name: "膻中", x: 300, y: 200, meridian: "任脉", description: "位于两乳头连线中点，宽胸理气，为气会穴" },
+            { name: "中府", x: 260, y: 185, meridian: "肺经", description: "位于胸外侧部，云门穴下1寸，宣肺理气" },
+            
+            // 腹部穴位
+            { name: "中脘", x: 300, y: 280, meridian: "任脉", description: "位于上腹部，脐上4寸，健脾和胃，为胃之募穴" },
+            { name: "神阙", x: 300, y: 320, meridian: "任脉", description: "即肚脐，位于腹中部，温阳益气，回阳救逆" },
+            { name: "气海", x: 300, y: 340, meridian: "任脉", description: "位于下腹部，脐下1.5寸，补益元气" },
+            { name: "关元", x: 300, y: 360, meridian: "任脉", description: "位于下腹部，脐下3寸，固本培元，为元气之海" },
+            
+            // 左侧手臂穴位
+            { name: "肩井", x: 220, y: 180, meridian: "胆经", description: "位于肩上，大椎与肩峰连线中点，通经活络" },
+            { name: "肩髃", x: 205, y: 185, meridian: "大肠经", description: "位于肩部，三角肌上方凹陷中，疏风通络" },
+            { name: "曲池", x: 170, y: 280, meridian: "大肠经", description: "位于肘横纹外侧端，清热解表，调和气血" },
+            { name: "手三里", x: 160, y: 310, meridian: "大肠经", description: "位于前臂，曲池下2寸，通经活络" },
+            { name: "合谷", x: 135, y: 405, meridian: "大肠经", description: "位于手背，第1、2掌骨间，镇痛解表，为四总穴之一" },
+            
+            // 右侧手臂穴位
+            { name: "肩井", x: 380, y: 180, meridian: "胆经", description: "位于肩上，大椎与肩峰连线中点，通经活络" },
+            { name: "肩髃", x: 395, y: 185, meridian: "大肠经", description: "位于肩部，三角肌上方凹陷中，疏风通络" },
+            { name: "曲池", x: 430, y: 280, meridian: "大肠经", description: "位于肘横纹外侧端，清热解表，调和气血" },
+            { name: "手三里", x: 440, y: 310, meridian: "大肠经", description: "位于前臂，曲池下2寸，通经活络" },
+            { name: "合谷", x: 465, y: 405, meridian: "大肠经", description: "位于手背，第1、2掌骨间，镇痛解表，为四总穴之一" },
+            
+            // 左侧腿部穴位
+            { name: "环跳", x: 250, y: 430, meridian: "胆经", description: "位于臀部，股骨大转子后上方，强腰健腿" },
+            { name: "风市", x: 260, y: 480, meridian: "胆经", description: "位于大腿外侧，膝上7寸，祛风湿" },
+            { name: "血海", x: 280, y: 510, meridian: "脾经", description: "位于大腿内侧，膝盖骨上方，调血活血" },
+            { name: "梁丘", x: 270, y: 550, meridian: "胃经", description: "位于大腿前面，膝盖骨外上方，和胃止痛" },
+            { name: "足三里", x: 275, y: 620, meridian: "胃经", description: "位于小腿前外侧，犊鼻下3寸，强身健体，为四总穴之一" },
+            { name: "阳陵泉", x: 255, y: 590, meridian: "胆经", description: "位于小腿外侧，腓骨头前下方凹陷中，舒筋活络" },
+            { name: "三阴交", x: 285, y: 660, meridian: "脾经", description: "位于小腿内侧，内踝尖上3寸，调理脾胃肝肾" },
+            { name: "太冲", x: 260, y: 740, meridian: "肝经", description: "位于足背，第1、2跖骨间，疏肝理气，为四总穴之一" },
+            { name: "涌泉", x: 250, y: 770, meridian: "肾经", description: "位于足底前部凹陷中，滋阴补肾，为井穴" },
+            
+            // 右侧腿部穴位
+            { name: "环跳", x: 350, y: 430, meridian: "胆经", description: "位于臀部，股骨大转子后上方，强腰健腿" },
+            { name: "风市", x: 340, y: 480, meridian: "胆经", description: "位于大腿外侧，膝上7寸，祛风湿" },
+            { name: "血海", x: 320, y: 510, meridian: "脾经", description: "位于大腿内侧，膝盖骨上方，调血活血" },
+            { name: "梁丘", x: 330, y: 550, meridian: "胃经", description: "位于大腿前面，膝盖骨外上方，和胃止痛" },
+            { name: "足三里", x: 325, y: 620, meridian: "胃经", description: "位于小腿前外侧，犊鼻下3寸，强身健体，为四总穴之一" },
+            { name: "阳陵泉", x: 345, y: 590, meridian: "胆经", description: "位于小腿外侧，腓骨头前下方凹陷中，舒筋活络" },
+            { name: "三阴交", x: 315, y: 660, meridian: "脾经", description: "位于小腿内侧，内踝尖上3寸，调理脾胃肝肾" },
+            { name: "太冲", x: 340, y: 740, meridian: "肝经", description: "位于足背，第1、2跖骨间，疏肝理气，为四总穴之一" },
+            { name: "涌泉", x: 350, y: 770, meridian: "肾经", description: "位于足底前部凹陷中，滋阴补肾，为井穴" }
+        ];
+
+        let currentIndex = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let gameStarted = false;
+        let currentAcupoint = null;
+        let shuffledAcupoints = [];
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function initializeGame() {
+            const humanBody = document.getElementById('humanBody');
+            
+            // 创建穴位点和标签
+            acupoints.forEach((point, index) => {
+                const acupointElement = document.createElement('div');
+                acupointElement.className = 'acupoint';
+                acupointElement.style.left = point.x - 8 + 'px';
+                acupointElement.style.top = point.y - 8 + 'px';
+                acupointElement.setAttribute('data-index', index);
+                acupointElement.addEventListener('click', handleAcupointClick);
+                
+                // 创建标签
+                const labelElement = document.createElement('div');
+                labelElement.className = 'acupoint-label';
+                labelElement.textContent = point.name;
+                labelElement.style.left = point.x + 15 + 'px';
+                labelElement.style.top = point.y - 30 + 'px';
+                
+                humanBody.appendChild(acupointElement);
+                humanBody.appendChild(labelElement);
+            });
+        }
+
+        function startLearning() {
+            gameStarted = true;
+            currentIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            shuffledAcupoints = shuffleArray(acupoints);
+            updateScore();
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (!gameStarted) {
+                startLearning();
+                return;
+            }
+
+            if (currentIndex >= shuffledAcupoints.length) {
+                showAchievement();
+                return;
+            }
+
+            currentAcupoint = shuffledAcupoints[currentIndex];
+            document.getElementById('currentAcupoint').textContent = currentAcupoint.name;
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+            
+            // 清除之前的高亮
+            const acupointElements = document.querySelectorAll('.acupoint');
+            acupointElements.forEach(el => el.classList.remove('highlight'));
+            
+            updateProgress();
+        }
+
+        function handleAcupointClick(event) {
+            if (!gameStarted || !currentAcupoint) return;
+
+            const clickedIndex = parseInt(event.target.getAttribute('data-index'));
+            const clickedPoint = acupoints[clickedIndex];
+            const feedbackElement = document.getElementById('feedback');
+
+            if (clickedPoint.name === currentAcupoint.name) {
+                // 正确答案
+                correctCount++;
+                feedbackElement.textContent = `✅ 正确！${currentAcupoint.name}属于${currentAcupoint.meridian}`;
+                feedbackElement.className = 'feedback correct';
+                event.target.classList.add('highlight');
+                
+                // 显示经络信息
+                document.getElementById('meridianInfo').innerHTML = 
+                    `<strong style="color: #ff6b35; font-size: 1.1em;">${currentAcupoint.name}</strong><br>
+                     <strong>所属经络：</strong>${currentAcupoint.meridian}<br>
+                     <strong>主要功效：</strong>${currentAcupoint.description}`;
+                
+                setTimeout(() => {
+                    currentIndex++;
+                    nextQuestion();
+                }, 3000);
+            } else {
+                // 错误答案
+                incorrectCount++;
+                feedbackElement.innerHTML = `❌ 错误！您点击的是<strong>${clickedPoint.name}</strong><br>正确答案是<strong>${currentAcupoint.name}</strong>`;
+                feedbackElement.className = 'feedback incorrect';
+                
+                // 高亮正确答案
+                const correctIndex = acupoints.findIndex(point => point.name === currentAcupoint.name);
+                const correctElement = document.querySelector(`[data-index="${correctIndex}"]`);
+                if (correctElement) {
+                    correctElement.classList.add('highlight');
+                }
+                
+                // 显示正确答案信息
+                document.getElementById('meridianInfo').innerHTML = 
+                    `<strong style="color: #e74c3c; font-size: 1.1em;">正确答案：${currentAcupoint.name}</strong><br>
+                     <strong>所属经络：</strong>${currentAcupoint.meridian}<br>
+                     <strong>主要功效：</strong>${currentAcupoint.description}`;
+                
+                setTimeout(() => {
+                    currentIndex++;
+                    nextQuestion();
+                }, 4000);
+            }
+
+            updateScore();
+        }
+
+        function updateScore() {
+            document.getElementById('correct').textContent = correctCount;
+            document.getElementById('incorrect').textContent = incorrectCount;
+            const total = correctCount + incorrectCount;
+            const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        function updateProgress() {
+            const progress = (currentIndex / shuffledAcupoints.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function resetGame() {
+            gameStarted = false;
+            currentIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            currentAcupoint = null;
+            shuffledAcupoints = [];
+            
+            document.getElementById('currentAcupoint').textContent = '点击开始学习';
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+            document.getElementById('meridianInfo').innerHTML = '选择穴位后显示相关经络信息<br><small>本工具包含人体主要穴位，涵盖头面部、胸腹部、四肢等重要部位</small>';
+            
+            // 清除高亮
+            const acupointElements = document.querySelectorAll('.acupoint');
+            acupointElements.forEach(el => el.classList.remove('highlight'));
+            
+            updateScore();
+            updateProgress();
+        }
+
+        function showAchievement() {
+            const achievement = document.getElementById('achievement');
+            const achievementText = document.getElementById('achievementText');
+            const total = correctCount + incorrectCount;
+            const accuracy = Math.round((correctCount / total) * 100);
+            
+            let grade = '';
+            let emoji = '';
+            if (accuracy >= 90) {
+                grade = '优秀！您对穴位掌握很好！';
+                emoji = '🏆';
+            } else if (accuracy >= 80) {
+                grade = '良好！继续加油！';
+                emoji = '🥈';
+            } else if (accuracy >= 70) {
+                grade = '中等，还需多练习！';
+                emoji = '🥉';
+            } else {
+                grade = '需要加强学习！';
+                emoji = '💪';
+            }
+            
+            achievementText.innerHTML = `
+                ${emoji} 学习完成！<br>
+                完成穴位：${shuffledAcupoints.length} 个<br>
+                正确回答：${correctCount} 个<br>
+                错误回答：${incorrectCount} 个<br>
+                正确率：${accuracy}%<br>
+                <strong style="color: #ff6b35;">${grade}</strong>
+            `;
+            
+            achievement.classList.add('show');
+        }
+
+        function closeAchievement() {
+            document.getElementById('achievement').classList.remove('show');
+            resetGame();
+        }
+
+        // 初始化游戏
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGame();
+            // 设置初始信息
+            document.getElementById('meridianInfo').innerHTML = 
+                '欢迎使用中医穴位学习工具！<br><small>点击"开始学习"按钮开始练习，本工具包含' + 
+                acupoints.length + '个重要穴位</small>';
+        });
+    </script>
+</body>
+</html>
